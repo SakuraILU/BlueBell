@@ -5,3 +5,8 @@ type ParamSignUp struct {
 	Password   string
 	RePassword string
 }
+
+type ParamLogin struct {
+	Username string
+	Password string
+}

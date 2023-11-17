@@ -32,14 +32,24 @@ func SignUpHandler(c *gin.Context) {
 	WriteSuccessResponse(c, nil)
 }
 
-func validateSignUp(param *model.ParamSignUp) bool {
-	if len(param.Username) <= 0 || len(param.Password) < 6 || len(param.RePassword) < 6 {
-		return false
+func Login(c *gin.Context) {
+	param := new(model.ParamLogin)
+
+	if err := c.ShouldBindJSON(param); err != nil {
+		log.Error(err)
+		WriteErrorResponse(c, InvalidParam)
+		return
 	}
 
-	if param.Password != param.RePassword {
-		return false
+	if !validateLogin(param) {
+		WriteErrorResponse(c, InvalidParam)
+		return
 	}
 
-	return true
+	// login
+	if err := logic.Login(param); err != nil {
+		WriteErrorResponse(c, UserNotExist)
+	}
+
+	WriteSuccessResponse(c, nil)
 }

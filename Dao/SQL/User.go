@@ -31,14 +31,14 @@ func InsertUser(user *model.User) (err error) {
 }
 
 func CheckUserExistByName(name string) bool {
-	if _, err := getUserByName(name); err == nil {
+	if _, err := GetUserByName(name); err == nil {
 		return true
 	} else {
 		return false
 	}
 }
 
-func getUserByName(name string) (user *model.User, err error) {
+func GetUserByName(name string) (user *model.User, err error) {
 	user = new(model.User)
 	err = db.Where("username = ?", name).First(user).Error
 	if err != nil {

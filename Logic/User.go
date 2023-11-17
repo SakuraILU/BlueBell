@@ -52,3 +52,21 @@ func encryptPassword(password string) string {
 
 	return string(epassword)
 }
+
+func Login(param *model.ParamLogin) (err error) {
+	var user *model.User
+
+	if user, err = sql.GetUserByName(param.Username); err != nil {
+		err = fmt.Errorf("user %s not exist", user.Username)
+		return
+	}
+
+	if user.Password != encryptPassword(param.Password) {
+		err = fmt.Errorf("password is not correct")
+		return
+	}
+
+	log.Infof("user %s login success", user.Username)
+
+	return
+}
