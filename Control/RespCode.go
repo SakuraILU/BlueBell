@@ -7,6 +7,8 @@ const (
 	UserNotExist
 	UserExist
 	InvalidPassword
+	NotLogin
+	InvalidToken
 
 	Success
 )
@@ -16,6 +18,8 @@ var error2text = map[Code]string{
 	UserNotExist:    "用户不存在",
 	UserExist:       "用户已存在",
 	InvalidPassword: "密码错误",
+	NotLogin:        "未登录",
+	InvalidToken:    "非法校验码",
 
 	Success: "请求成功",
 }

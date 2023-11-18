@@ -1,9 +1,11 @@
 package logic
 
 import (
+	rdb "bluebell/Dao/Rdb"
 	sql "bluebell/Dao/SQL"
 	log "bluebell/Log"
 	model "bluebell/Model"
+	cookie "bluebell/Utils/Cookie"
 	snowflake "bluebell/Utils/Snowflake"
 	"crypto/md5"
 	"fmt"
@@ -27,7 +29,7 @@ func init() {
 }
 
 func SignUp(param *model.ParamSignUp) (err error) {
-	user := model.User{
+	user := &model.User{
 		ID:       user_sf.NextID(),
 		Username: param.Username,
 		Password: encryptPassword(param.Password),
@@ -38,7 +40,7 @@ func SignUp(param *model.ParamSignUp) (err error) {
 		return
 	}
 	// dao: write to database
-	if err = sql.InsertUser(&user); err != nil {
+	if err = sql.InsertUser(user); err != nil {
 		return
 	}
 
@@ -53,7 +55,7 @@ func encryptPassword(password string) string {
 	return string(epassword)
 }
 
-func Login(param *model.ParamLogin) (err error) {
+func Login(param *model.ParamLogin) (token_str string, err error) {
 	var user *model.User
 
 	if user, err = sql.GetUserByName(param.Username); err != nil {
@@ -68,5 +70,11 @@ func Login(param *model.ParamLogin) (err error) {
 
 	log.Infof("user %s login success", user.Username)
 
-	return
+	token_str, err = cookie.GetToken(user)
+	if err != nil {
+		log.Errorf("cookie generation wrong!")
+	}
+
+	rdb.SetToken(user.ID, token_str)
+	return token_str, nil
 }

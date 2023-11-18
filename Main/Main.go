@@ -5,6 +5,7 @@ import (
 	model "bluebell/Model"
 	"bytes"
 	"encoding/json"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -16,120 +17,133 @@ var addr = "localhost:8080"
 
 func startServer() {
 	r := gin.Default()
-	r.POST("/signup", control.SignUpHandler)
-	r.POST("/login", control.Login)
+	v1 := r.Group("/api/v1")
+
+	v1.Use(control.JwtAuthorization())
+	v1.POST("/signup", control.SignUpHandler)
+	v1.POST("/login", control.Login)
 	// r.ForwardedByClientIP = true
-	// r.SetTrustedProxies([]string{"127.0.0.1"})
+	r.SetTrustedProxies([]string{"127.0.0.1"})
 	r.Run()
 }
 
 func startClient() {
-	// register users
-	users := []model.ParamSignUp{
-		{
-			Username:   "user1",
-			Password:   "123456",
-			RePassword: "123456",
-		},
-		{
-			Username:   "user2",
-			Password:   "32142546",
-			RePassword: "32142546",
-		},
-		// user2 already exist
-		{
-			Username:   "user2",
-			Password:   "321rg46",
-			RePassword: "321rg46",
-		},
-		// invalid password
-		{
-			Username:   "user3",
-			Password:   "2546",
-			RePassword: "g3132142546",
-		},
+	// set random seed
+	rand.Seed(time.Now().Unix())
+
+	nuser := 10
+	paramSignups := make([]model.ParamSignUp, 0)
+	paramLogins := make([]model.ParamLogin, 0)
+	for i := 0; i < nuser; i++ {
+		// random username and password
+		name := ""
+		for j := 0; j < 10; j++ {
+			name += string('a' + rand.Intn(26))
+		}
+		password := ""
+		for j := 0; j < 15; j++ {
+			password += string('a' + rand.Intn(26))
+		}
+
+		paramSignups = append(paramSignups, model.ParamSignUp{
+			Username:   name,
+			Password:   password,
+			RePassword: password,
+		})
+		paramLogins = append(paramLogins, model.ParamLogin{
+			Username: name,
+			Password: password,
+		})
 	}
 
-	// start a client and send requests
+	for _, param := range paramSignups {
+		signup(param)
+	}
+
+	// user[0] login 4 times
+	tokens := make([]string, 0)
+	for i := 0; i < 3; i++ {
+		token, ok := login(paramLogins[0])
+		if !ok {
+			panic("login fail")
+		}
+		tokens = append(tokens, token)
+	}
+
+	// now the first token is invalid
+	if !loginByToken(tokens[0]) {
+		panic("token should be invalid")
+	}
+}
+
+func signup(user model.ParamSignUp) bool {
 	c := &http.Client{}
+	body, _ := json.Marshal(user)
+	req, err := http.NewRequest("POST", "http://localhost:8080/api/v1/signup", bytes.NewReader(body))
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
 
-	// signup
-	for _, user := range users {
-		body, _ := json.Marshal(user)
-		req, err := http.NewRequest("POST", "http://localhost:8080/signup", bytes.NewReader(body))
-		if err != nil {
-			panic(err)
-		}
-		resp, err := c.Do(req)
-		if err != nil {
-			panic(err)
-		}
-		// print response
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		respBody := buf.String()
-		println(respBody)
+	resp, err := c.Do(req)
+	if err != nil {
+		return false
 	}
 
-	// login
-	loginUsers := []model.ParamLogin{
-		{
-			Username: users[0].Username,
-			Password: users[0].Password,
-		},
-		{
-			Username: users[1].Username,
-			Password: users[1].Password,
-		},
-		// invalid password
-		{
-			Username: users[0].Username,
-			Password: users[0].Password + "123",
-		},
-		// invalid username
-		{
-			Username: "user1000",
-			Password: "12345656543342t",
-		},
+	// check statusok?
+	if resp.StatusCode != 200 {
+		return false
+	}
+	return true
+}
+
+func login(user model.ParamLogin) (token string, ok bool) {
+	c := &http.Client{}
+	body, _ := json.Marshal(user)
+	req, err := http.NewRequest("POST", "http://localhost:8080/api/v1/login", bytes.NewReader(body))
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.Do(req)
+	if err != nil {
+		return "", false
+	}
+	if resp.StatusCode != 200 {
+		return "", false
 	}
 
-	for i, user := range loginUsers {
-		body, _ := json.Marshal(user)
-		req, err := http.NewRequest("POST", "http://localhost:8080/login", bytes.NewReader(body))
-		// 0,1 success, 2,3 fail
-		if i < 2 {
-			if err != nil {
-				panic(err)
-			}
-			resp, err := c.Do(req)
-			if err != nil {
-				panic(err)
-			}
-			// print response
-			buf := new(bytes.Buffer)
-			buf.ReadFrom(resp.Body)
-			respBody := buf.String()
-			println(respBody)
-		} else {
-			if err != nil {
-				panic(err)
-			}
-			resp, err := c.Do(req)
-			if err != nil {
-				panic(err)
-			}
-			// print response
-			buf := new(bytes.Buffer)
-			buf.ReadFrom(resp.Body)
-			respBody := buf.String()
-			println(respBody)
-		}
+	// token 在body中的Data字段
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	respbody := make(map[string]string)
+	json.Unmarshal(buf.Bytes(), &respbody)
+	token = respbody["Data"]
+
+	return token, true
+}
+
+func loginByToken(token string) bool {
+	c := &http.Client{}
+	req, err := http.NewRequest("POST", "http://localhost:8080/api/v1/login", nil)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := c.Do(req)
+
+	// check statusok?
+	if resp.StatusCode != http.StatusOK {
+		return false
 	}
 
+	return true
 }
 
 func main() {
 	go startServer()
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
+
 	startClient()
 }
