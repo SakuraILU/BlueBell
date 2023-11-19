@@ -42,7 +42,7 @@ var communities = []model.Community{
 }
 
 func InsertCommunity(community *model.Community) (err error) {
-	log.Infof("Create community %v", community)
+	// log.Infof("Create community %v", community)
 	err = db.Model(&model.Community{}).Create(community).Error
 	if err != nil {
 		log.Errorf(err.Error())

@@ -35,15 +35,15 @@ func startServer() {
 }
 
 func startClient() {
+	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
 
 	param_signup := GenerateUserSignUp()
-
 	// signup may fail because of duplicate username, just ignore it
 	if !signup(param_signup) {
 		return
 	}
 
-	time.Sleep((time.Duration(rand.Intn(4)+2) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
 
 	param_login := model.ParamLogin{
 		Username: param_signup.Username,
@@ -56,14 +56,14 @@ func startClient() {
 		panic("login fail")
 	}
 
-	time.Sleep((time.Duration(rand.Intn(4)+2) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
 
 	communities, err := GetCommunities(token)
 	if err != nil {
 		panic(err)
 	}
 
-	time.Sleep((time.Duration(rand.Intn(4)+2) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
 
 	for _, community := range communities {
 		c_detail, err := GetCommunityDetail(token, community.ID)
@@ -220,7 +220,10 @@ func main() {
 	time.Sleep(3 * time.Second)
 
 	wg := sync.WaitGroup{}
-	for i := 0; i < 10000; i++ {
+	// before run this test, delete the database file and flushall the redis data
+	// and don't use too many goroutine! 5000 goroutine is enough
+	// otherwise, database may be locked and cause reading fail -> panic
+	for i := 0; i < 5000; i++ {
 		wg.Add(1)
 		go func() {
 			startClient()
