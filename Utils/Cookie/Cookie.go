@@ -1,7 +1,6 @@
 package cookie
 
 import (
-	log "bluebell/Log"
 	model "bluebell/Model"
 	"time"
 
@@ -41,7 +40,6 @@ func GetToken(user *model.User) (string, error) {
 func ParseToken(token_str string) (user *model.User, err error) {
 	c := &Claims{}
 
-	log.Errorf("parse token: %v", token_str)
 	if _, err = jwt.ParseWithClaims(token_str, c, func(t *jwt.Token) (interface{}, error) {
 		// note: salt is []byte, not string... horrible bug...
 		return []byte(salt), nil

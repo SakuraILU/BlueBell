@@ -35,7 +35,7 @@ var (
 
 func init() {
 	fd := os.Stdout
-	flag := log.Ldate | log.Lshortfile
+	flag := log.Ldate | log.Llongfile
 	infolog = log.New(fd, setColor("[INFO ] ", blue), flag)
 	warnlog = log.New(fd, setColor("[WARN ] ", orange), flag)
 	errlog = log.New(fd, setColor("[ERROR] ", red), flag)
