@@ -56,9 +56,8 @@ func encryptPassword(password string) string {
 }
 
 func Login(param *model.ParamLogin) (token_str string, err error) {
-	var user *model.User
-
-	if user, err = sql.GetUserByName(param.Username); err != nil {
+	user, err := sql.GetUserByName(param.Username)
+	if err != nil {
 		err = fmt.Errorf("user %s not exist", user.Username)
 		return
 	}

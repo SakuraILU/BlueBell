@@ -33,6 +33,8 @@ func init() {
 		end
 
 		redis.call("RPUSH", key, token_str)
+
+		return 1
 	`
 
 	var err error
@@ -47,9 +49,11 @@ func init() {
 func SetToken(userid int64, token_str string) (err error) {
 	key := fmt.Sprintf("%s%d", KEYTOKEN, userid)
 	if _, err = rdb.EvalSha(settoken_script_sha, []string{key}, token_str, NDUPLICATE).Result(); err != nil {
-		log.Errorf("Set token %s for user %d fails", token_str, userid)
+		log.Errorf(err.Error())
 		return
 	}
+
+	log.Infof("Set user %v's token %v success", userid, token_str)
 
 	return
 }
@@ -57,7 +61,7 @@ func SetToken(userid int64, token_str string) (err error) {
 func GetTokenStrs(userid int64) (token_strs []string, err error) {
 	key := fmt.Sprintf("%s%d", KEYTOKEN, userid)
 	if token_strs, err = rdb.LRange(key, 0, -1).Result(); err != nil {
-		log.Errorf("Get user %v's token fail", userid)
+		log.Errorf("Get user %v's tokens fail", userid)
 		return
 	}
 

@@ -6,7 +6,7 @@ import (
 )
 
 func InsertUser(user *model.User) (err error) {
-	err = db.Create(user).Error
+	err = db.Model(&model.User{}).Create(&user).Error
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {
@@ -24,8 +24,8 @@ func CheckUserExistByName(name string) bool {
 }
 
 func GetUserByName(name string) (user *model.User, err error) {
-	user = new(model.User)
-	err = db.Where("username = ?", name).First(user).Error
+	user = &model.User{}
+	err = db.Model(&model.User{}).Where("username = ?", name).First(user).Error
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {

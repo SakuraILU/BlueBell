@@ -20,9 +20,14 @@ func init() {
 	db.AutoMigrate(&model.User{})
 	db.AutoMigrate(&model.Community{})
 
-	// for _, community := range communities {
-	// 	if err := InsertCommunity(&community); err != nil {
-	// 		panic(err)
-	// 	}
-	// }
+	// check if the table is empty
+	var count int64
+	db.Model(&model.Community{}).Count(&count)
+	if count == 0 {
+		for _, community := range communities {
+			if err := InsertCommunity(&community); err != nil {
+				panic(err)
+			}
+		}
+	}
 }

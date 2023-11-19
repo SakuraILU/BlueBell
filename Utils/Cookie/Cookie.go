@@ -28,7 +28,7 @@ func GetToken(user *model.User) (string, error) {
 			ExpiresAt: time.Now().Add(ExpireTime).Unix(),
 		},
 		UserID:   user.ID,
-		Username: user.Password,
+		Username: user.Username,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
@@ -51,6 +51,5 @@ func ParseToken(token_str string) (user *model.User, err error) {
 		ID:       c.UserID,
 		Username: c.Username,
 	}
-
 	return user, nil
 }

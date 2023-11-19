@@ -2,17 +2,20 @@ package main
 
 import (
 	control "bluebell/Control"
+	log "bluebell/Log"
 	model "bluebell/Model"
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+var c = &http.Client{}
 
 // listen on port 8080
 var addr = "localhost:8080"
@@ -23,7 +26,7 @@ func startServer() {
 
 	v1.Use(control.JwtAuthorization())
 	v1.POST("/signup", control.SignUpHandler)
-	v1.POST("/login", control.Login)
+	v1.POST("/login", control.LoginHandler)
 	v1.GET("/community", control.CommunityListHandler)
 	v1.GET("/community/:id", control.CommunityDetail)
 	// r.ForwardedByClientIP = true
@@ -32,77 +35,64 @@ func startServer() {
 }
 
 func startClient() {
-	// set random seed
-	rand.Seed(time.Now().Unix())
 
-	nuser := 10
-	paramSignups := make([]model.ParamSignUp, 0)
-	paramLogins := make([]model.ParamLogin, 0)
-	for i := 0; i < nuser; i++ {
-		// random username and password
-		name := ""
-		for j := 0; j < 10; j++ {
-			name += string('a' + rand.Intn(26))
-		}
-		password := ""
-		for j := 0; j < 15; j++ {
-			password += string('a' + rand.Intn(26))
-		}
+	param_signup := GenerateUserSignUp()
 
-		paramSignups = append(paramSignups, model.ParamSignUp{
-			Username:   name,
-			Password:   password,
-			RePassword: password,
-		})
-		paramLogins = append(paramLogins, model.ParamLogin{
-			Username: name,
-			Password: password,
-		})
+	// signup may fail because of duplicate username, just ignore it
+	if !signup(param_signup) {
+		return
 	}
 
-	for _, param := range paramSignups {
-		signup(param)
+	time.Sleep((time.Duration(rand.Intn(4)+2) * time.Second))
+
+	param_login := model.ParamLogin{
+		Username: param_signup.Username,
+		Password: param_signup.Password,
 	}
-
-	// test multiple login
-	// // user[0] login 4 times
-	// tokens := make([]string, 0)
-	// for i := 0; i < 4; i++ {
-	// 	token, ok := login(paramLogins[0])
-	// 	if !ok {
-	// 		panic("login fail")
-	// 	}
-	// 	time.Sleep(5 * time.Second)
-	// 	tokens = append(tokens, token)
-	// }
-
-	// // now the first token is invalid
-	// if loginByToken(tokens[0]) == true {
-	// 	panic("token should be invalid...")
-	// }
 
 	// get communities
-	token, ok := login(paramLogins[0])
+	token, ok := login(param_login)
 	if !ok {
 		panic("login fail")
 	}
+
+	time.Sleep((time.Duration(rand.Intn(4)+2) * time.Second))
 
 	communities, err := GetCommunities(token)
 	if err != nil {
 		panic(err)
 	}
+
+	time.Sleep((time.Duration(rand.Intn(4)+2) * time.Second))
+
 	for _, community := range communities {
 		c_detail, err := GetCommunityDetail(token, community.ID)
 		if err != nil {
 			panic(err)
 		}
+		log.Infof("community detail: %v", c_detail)
+	}
+}
 
-		log.Printf("community %v detail: %v", community, c_detail)
+func GenerateUserSignUp() model.ParamSignUp {
+	// random username and password
+	name := ""
+	for j := 0; j < 8; j++ {
+		name += string(byte('a' + rand.Intn(26)))
+	}
+	password := ""
+	for j := 0; j < 12; j++ {
+		password += string(byte('a' + rand.Intn(26)))
+	}
+
+	return model.ParamSignUp{
+		Username:   name,
+		Password:   password,
+		RePassword: password,
 	}
 }
 
 func signup(user model.ParamSignUp) bool {
-	c := &http.Client{}
 	body, _ := json.Marshal(user)
 	req, err := http.NewRequest("POST", "http://localhost:8080/api/v1/signup", bytes.NewReader(body))
 	if err != nil {
@@ -120,7 +110,6 @@ func signup(user model.ParamSignUp) bool {
 }
 
 func login(user model.ParamLogin) (token string, ok bool) {
-	c := &http.Client{}
 	body, _ := json.Marshal(user)
 	req, err := http.NewRequest("POST", "http://localhost:8080/api/v1/login", bytes.NewReader(body))
 	if err != nil {
@@ -138,15 +127,19 @@ func login(user model.ParamLogin) (token string, ok bool) {
 	// token 在body中的Data字段
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
-	respbody := make(map[string]string)
+	type ResponseData struct {
+		Code int    `json:"Code"`
+		Msg  string `json:"msg"`
+		Data string `json:"Data"`
+	}
+	respbody := ResponseData{}
 	json.Unmarshal(buf.Bytes(), &respbody)
-	token = respbody["Data"]
+	token = respbody.Data
 
 	return token, true
 }
 
 func loginByToken(token string) bool {
-	c := &http.Client{}
 	req, err := http.NewRequest("POST", "http://localhost:8080/api/v1/login", nil)
 	if err != nil {
 		panic(err)
@@ -160,7 +153,6 @@ func loginByToken(token string) bool {
 }
 
 func GetCommunities(token string) ([]model.ParamCommity, error) {
-	c := &http.Client{}
 	req, err := http.NewRequest("GET", "http://localhost:8080/api/v1/community", nil)
 	if err != nil {
 		panic(err)
@@ -191,7 +183,6 @@ func GetCommunities(token string) ([]model.ParamCommity, error) {
 }
 
 func GetCommunityDetail(token string, id int64) (model.ParamCommityDetail, error) {
-	c := &http.Client{}
 	req, err := http.NewRequest("GET", "http://localhost:8080/api/v1/community/"+fmt.Sprint(id), nil)
 	if err != nil {
 		panic(err)
@@ -222,8 +213,19 @@ func GetCommunityDetail(token string, id int64) (model.ParamCommityDetail, error
 }
 
 func main() {
+	// set random seed
+	rand.Seed(time.Now().Unix())
+
 	go startServer()
 	time.Sleep(3 * time.Second)
 
-	startClient()
+	wg := sync.WaitGroup{}
+	for i := 0; i < 10000; i++ {
+		wg.Add(1)
+		go func() {
+			startClient()
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }

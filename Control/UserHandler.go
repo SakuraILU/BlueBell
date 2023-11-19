@@ -9,7 +9,7 @@ import (
 )
 
 func SignUpHandler(ctx *gin.Context) {
-	param := new(model.ParamSignUp)
+	param := &model.ParamSignUp{}
 
 	if err := ctx.ShouldBindJSON(param); err != nil {
 		log.Error(err)
@@ -22,7 +22,7 @@ func SignUpHandler(ctx *gin.Context) {
 		return
 	}
 
-	log.Infof("try to regist user %v", param)
+	log.Warnf("try to regist user %v", param)
 
 	// signup the user
 	if err := logic.SignUp(param); err != nil {
@@ -32,15 +32,14 @@ func SignUpHandler(ctx *gin.Context) {
 	}
 }
 
-func Login(ctx *gin.Context) {
+func LoginHandler(ctx *gin.Context) {
 	// check fast login through cookie...
 	if _, err := GetUserID(ctx); err == nil {
 		WriteSuccessResponse(ctx, nil)
 		return
 	}
 
-	param := new(model.ParamLogin)
-
+	param := &model.ParamLogin{}
 	if err := ctx.ShouldBindJSON(param); err != nil {
 		log.Error(err)
 		WriteErrorResponse(ctx, InvalidParam)

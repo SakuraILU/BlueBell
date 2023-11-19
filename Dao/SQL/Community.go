@@ -43,7 +43,7 @@ var communities = []model.Community{
 
 func InsertCommunity(community *model.Community) (err error) {
 	log.Infof("Create community %v", community)
-	err = db.Create(community).Error
+	err = db.Model(&model.Community{}).Create(community).Error
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {
@@ -54,7 +54,7 @@ func InsertCommunity(community *model.Community) (err error) {
 
 func GetCommunities() (communities []model.Community, err error) {
 	communities = make([]model.Community, 0)
-	err = db.Find(&communities).Error
+	err = db.Model(&model.Community{}).Find(&communities).Error
 	for _, community := range communities {
 		log.Infof("Get community %v", community)
 	}
@@ -69,7 +69,7 @@ func GetCommunities() (communities []model.Community, err error) {
 
 func GetCommunity(id int64) (community model.Community, err error) {
 	community = model.Community{}
-	err = db.Where("id = ?", id).First(&community).Error
+	err = db.Model(&model.Community{}).Where("id = ?", id).First(&community).Error
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {
