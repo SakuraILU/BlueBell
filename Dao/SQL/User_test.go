@@ -23,7 +23,7 @@ func TestInsertUser(t *testing.T) {
 	users := gnerateUsers(nuser)
 
 	for _, user := range users {
-		err := InsertUser(&user)
+		err := CreateUser(&user)
 		if err != nil {
 			t.Error(err.Error())
 			return
@@ -58,7 +58,7 @@ func TestInsertUser2(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			for k := i; k < nuser; k += ngo {
-				err := InsertUser(&users[k])
+				err := CreateUser(&users[k])
 				if err != nil {
 					t.Error(err.Error())
 					return

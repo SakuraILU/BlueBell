@@ -8,6 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	ParamUID = "cid"
+)
+
 func CommunityListHandler(ctx *gin.Context) {
 	// logic.GetCommunityList
 	param_communities, err := logic.GetCommunities()
@@ -20,8 +24,8 @@ func CommunityListHandler(ctx *gin.Context) {
 	return
 }
 
-func CommunityDetail(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+func CommunityDetailHandler(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param(ParamUID))
 	if err != nil {
 		log.Errorf("Invalid community id")
 		WriteErrorResponse(ctx, InvalidParam)

@@ -28,14 +28,18 @@ func startServer() {
 	v1.POST("/signup", control.SignUpHandler)
 	v1.POST("/login", control.LoginHandler)
 	v1.GET("/community", control.CommunityListHandler)
-	v1.GET("/community/:id", control.CommunityDetail)
-	// r.ForwardedByClientIP = true
+	v1.GET("/community/:cid", control.CommunityDetailHandler)
+	v1.POST("/post", control.CreatePostHandler)
+	v1.GET("/posts", control.GetPostListHandler)
+	v1.GET("/post/:pid", control.GetPostDetailHandler)
+	v1.POST("/vote", control.VoteForPostHandler)
+
 	r.SetTrustedProxies([]string{"127.0.0.1"})
 	r.Run()
 }
 
 func startClient() {
-	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	param_signup := GenerateUserSignUp()
 	// signup may fail because of duplicate username, just ignore it
@@ -43,7 +47,7 @@ func startClient() {
 		return
 	}
 
-	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	param_login := model.ParamLogin{
 		Username: param_signup.Username,
@@ -56,14 +60,14 @@ func startClient() {
 		panic("login fail")
 	}
 
-	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	communities, err := GetCommunities(token)
 	if err != nil {
 		panic(err)
 	}
 
-	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	for _, community := range communities {
 		c_detail, err := GetCommunityDetail(token, community.ID)
@@ -72,6 +76,102 @@ func startClient() {
 		}
 		log.Infof("community detail: %v", c_detail)
 	}
+
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+
+	// create post
+	for i := 0; i < 30; i++ {
+		post := GeneratePost()
+		if !CreatePost(token, post) {
+			panic("create post fail")
+		}
+	}
+
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+
+	// get posts
+	post_details, err := GetPosts(token, 1, 6)
+	if err != nil {
+		panic(err)
+	}
+
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+
+	// vote for posts
+	for i := 0; i < 6; i++ {
+		vote := model.ParamVote{
+			PostID: post_details[i].Post.ID,
+			Choice: 1,
+		}
+		if !VoteForPost(token, vote) {
+			panic("vote fail")
+		}
+	}
+
+	for i := 0; i < 4; i++ {
+		vote := model.ParamVote{
+			PostID: post_details[i].Post.ID,
+			Choice: -1,
+		}
+		if !VoteForPost(token, vote) {
+			panic("vote fail")
+		}
+	}
+
+	// signup may fail because of duplicate username, just ignore it
+	param_signup = GenerateUserSignUp()
+	if !signup(param_signup) {
+		return
+	}
+
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+
+	param_login = model.ParamLogin{
+		Username: param_signup.Username,
+		Password: param_signup.Password,
+	}
+
+	// get communities
+	token, ok = login(param_login)
+	if !ok {
+		panic("login fail")
+	}
+
+	for i := 0; i < 2; i++ {
+		vote := model.ParamVote{
+			PostID: post_details[i].Post.ID,
+			Choice: -1,
+		}
+		if !VoteForPost(token, vote) {
+			panic("vote fail")
+		}
+	}
+
+	for i := 1; i < 3; i++ {
+		vote := model.ParamVote{
+			PostID: post_details[i].Post.ID,
+			Choice: 1,
+		}
+		if !VoteForPost(token, vote) {
+			panic("vote fail")
+		}
+	}
+
+	// get posts
+	post_details, err = GetPosts(token, 1, 6)
+	if err != nil {
+		panic(err)
+	}
+	for _, post_detail := range post_details {
+		log.Infof("[%d] post: title %v, community %v, vote %v", post_detail.Post.ID, post_detail.Post.Title, post_detail.CommunityDetail.Name, post_detail.NVote)
+	}
+
+	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
+
+	// get post
+	post_detail, err := GetPost(token, post_details[len(post_details)-1].Post.ID)
+	log.Infof("post: name %v, title %v, %d, content %s", post_detail.AuthorName, post_detail.Post.Title, post_detail.NVote, post_detail.Post.Content)
+
 }
 
 func GenerateUserSignUp() model.ParamSignUp {
@@ -89,6 +189,24 @@ func GenerateUserSignUp() model.ParamSignUp {
 		Username:   name,
 		Password:   password,
 		RePassword: password,
+	}
+}
+
+func GeneratePost() model.ParamPost {
+	// random username and password
+	title := ""
+	for j := 0; j < 1+rand.Intn(10); j++ {
+		title += string(byte('a' + rand.Intn(26)))
+	}
+	content := ""
+	for j := 0; j < 524; j++ {
+		content += string(byte('a' + rand.Intn(26)))
+	}
+
+	return model.ParamPost{
+		Title:       title,
+		Content:     content,
+		CommunityID: 1 + rand.Int63n(4),
 	}
 }
 
@@ -152,7 +270,7 @@ func loginByToken(token string) bool {
 	return resp.StatusCode == http.StatusOK
 }
 
-func GetCommunities(token string) ([]model.ParamCommity, error) {
+func GetCommunities(token string) ([]model.ParamCommunity, error) {
 	req, err := http.NewRequest("GET", "http://localhost:8080/api/v1/community", nil)
 	if err != nil {
 		panic(err)
@@ -165,9 +283,9 @@ func GetCommunities(token string) ([]model.ParamCommity, error) {
 	buf.ReadFrom(resp.Body)
 
 	type ResponseData struct {
-		Code int                  `json:"Code"`
-		Msg  string               `json:"msg"`
-		Data []model.ParamCommity `json:"Data"`
+		Code int                    `json:"Code"`
+		Msg  string                 `json:"msg"`
+		Data []model.ParamCommunity `json:"Data"`
 	}
 
 	respbody := ResponseData{}
@@ -182,7 +300,7 @@ func GetCommunities(token string) ([]model.ParamCommity, error) {
 	return communities, nil
 }
 
-func GetCommunityDetail(token string, id int64) (model.ParamCommityDetail, error) {
+func GetCommunityDetail(token string, id int64) (model.ParamCommunityDetail, error) {
 	req, err := http.NewRequest("GET", "http://localhost:8080/api/v1/community/"+fmt.Sprint(id), nil)
 	if err != nil {
 		panic(err)
@@ -195,9 +313,9 @@ func GetCommunityDetail(token string, id int64) (model.ParamCommityDetail, error
 	buf.ReadFrom(resp.Body)
 
 	type ResponseData struct {
-		Code int                      `json:"Code"`
-		Msg  string                   `json:"msg"`
-		Data model.ParamCommityDetail `json:"Data"`
+		Code int                        `json:"Code"`
+		Msg  string                     `json:"msg"`
+		Data model.ParamCommunityDetail `json:"Data"`
 	}
 
 	respbody := ResponseData{}
@@ -212,6 +330,105 @@ func GetCommunityDetail(token string, id int64) (model.ParamCommityDetail, error
 	return community, nil
 }
 
+func CreatePost(token string, post model.ParamPost) bool {
+	data, err := json.Marshal(post)
+	if err != nil {
+		panic(err)
+	}
+	req, err := http.NewRequest("POST", "http://localhost:8080/api/v1/post", bytes.NewReader(data))
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := c.Do(req)
+
+	// check statusok?
+	return resp.StatusCode == http.StatusOK
+}
+
+func GetPosts(taken string, page, size int) ([]*model.ParamPostDetail, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/v1/posts?page=%d&size=%d", page, size), nil)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+taken)
+
+	resp, err := c.Do(req)
+	// get communities
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+
+	type ResponseData struct {
+		Code int                      `json:"Code"`
+		Msg  string                   `json:"msg"`
+		Data []*model.ParamPostDetail `json:"Data"`
+	}
+
+	respbody := ResponseData{}
+	json.Unmarshal(buf.Bytes(), &respbody)
+	posts := respbody.Data
+
+	// check statusok?
+	if resp.StatusCode != http.StatusOK {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
+func GetPost(token string, id int64) (post *model.ParamPostDetail, err error) {
+	req, err := http.NewRequest("GET", "http://localhost:8080/api/v1/post/"+fmt.Sprint(id), nil)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return
+	}
+
+	// get post
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+
+	type ResponseData struct {
+		Code int                    `json:"Code"`
+		Msg  string                 `json:"msg"`
+		Data *model.ParamPostDetail `json:"Data"`
+	}
+	respbody := ResponseData{}
+	json.Unmarshal(buf.Bytes(), &respbody)
+
+	// check statusok?
+	if resp.StatusCode != http.StatusOK {
+		return
+	}
+
+	post = respbody.Data
+	return
+}
+
+func VoteForPost(token string, vote model.ParamVote) bool {
+	data, err := json.Marshal(vote)
+	if err != nil {
+		panic(err)
+	}
+	req, err := http.NewRequest("POST", "http://localhost:8080/api/v1/vote", bytes.NewReader(data))
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := c.Do(req)
+
+	// check statusok?
+	return resp.StatusCode == http.StatusOK
+}
+
 func main() {
 	// set random seed
 	rand.Seed(time.Now().Unix())
@@ -223,7 +440,7 @@ func main() {
 	// before run this test, delete the database file and flushall the redis data
 	// and don't use too many goroutine! 5000 goroutine is enough
 	// otherwise, database may be locked and cause reading fail -> panic
-	for i := 0; i < 5000; i++ {
+	for i := 0; i < 1; i++ {
 		wg.Add(1)
 		go func() {
 			startClient()

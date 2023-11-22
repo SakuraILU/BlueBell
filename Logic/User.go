@@ -6,27 +6,9 @@ import (
 	log "bluebell/Log"
 	model "bluebell/Model"
 	cookie "bluebell/Utils/Cookie"
-	snowflake "bluebell/Utils/Snowflake"
 	"crypto/md5"
 	"fmt"
-	"time"
 )
-
-var (
-	user_sf *snowflake.Snowflake
-	salt    string = "honkai: star rail"
-)
-
-func init() {
-	stime, err := time.Parse("2006-01-02 15:04:05", "2020-01-01 00:00:00")
-	if err != nil {
-		log.Panic(err.Error())
-	}
-	user_sf, err = snowflake.NewSnowflake(stime, 0, 0)
-	if err != nil {
-		log.Panic(err.Error())
-	}
-}
 
 func SignUp(param *model.ParamSignUp) (err error) {
 	user := &model.User{
@@ -40,7 +22,7 @@ func SignUp(param *model.ParamSignUp) (err error) {
 		return
 	}
 	// dao: write to database
-	if err = sql.InsertUser(user); err != nil {
+	if err = sql.CreateUser(user); err != nil {
 		return
 	}
 

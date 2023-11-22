@@ -10,12 +10,12 @@ type Community struct {
 	Update_time   time.Time
 }
 
-type ParamCommity struct {
+type ParamCommunity struct {
 	ID   int64
 	Name string
 }
 
-type ParamCommityDetail struct {
+type ParamCommunityDetail struct {
 	Name          string
 	Introducation string
 	Create_time   time.Time

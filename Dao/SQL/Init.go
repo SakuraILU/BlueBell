@@ -18,16 +18,18 @@ func init() {
 	}
 
 	db.AutoMigrate(&model.User{})
-	db.AutoMigrate(&model.Community{})
 
-	// check if the table is empty
+	db.AutoMigrate(&model.Community{})
+	// check if the communities is empty
 	var count int64
 	db.Model(&model.Community{}).Count(&count)
 	if count == 0 {
 		for _, community := range communities {
-			if err := InsertCommunity(&community); err != nil {
+			if err := CreateCommunity(&community); err != nil {
 				panic(err)
 			}
 		}
 	}
+
+	db.AutoMigrate(&model.Post{})
 }

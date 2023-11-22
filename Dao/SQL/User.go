@@ -5,8 +5,8 @@ import (
 	model "bluebell/Model"
 )
 
-func InsertUser(user *model.User) (err error) {
-	err = db.Model(&model.User{}).Create(&user).Error
+func CreateUser(user *model.User) (err error) {
+	err = db.Create(&user).Error
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {
@@ -25,7 +25,19 @@ func CheckUserExistByName(name string) bool {
 
 func GetUserByName(name string) (user *model.User, err error) {
 	user = &model.User{}
-	err = db.Model(&model.User{}).Where("username = ?", name).First(user).Error
+	err = db.Where("username = ?", name).First(user).Error
+	if err != nil {
+		log.Errorf(err.Error())
+	} else {
+		log.Infof("Get user %v success", user)
+	}
+
+	return
+}
+
+func GetUserByID(id int64) (user *model.User, err error) {
+	user = &model.User{}
+	err = db.Where("id = ?", id).First(user).Error
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {

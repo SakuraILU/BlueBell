@@ -36,14 +36,14 @@ func TestCommunity1(t *testing.T) {
 
 	for i, community := range communities {
 		log.Printf("Inserting community %d: %v", i, community)
-		if err := InsertCommunity(&community); err != nil {
+		if err := CreateCommunity(&community); err != nil {
 			t.Error(err.Error())
 			return
 		}
 	}
 
 	for _, community := range communities {
-		comm, err := GetCommunity(community.ID)
+		comm, err := GetCommunityByID(community.ID)
 		if err != nil {
 			t.Errorf("Community %v not exist", community)
 			return
@@ -67,7 +67,7 @@ func TestCommunity1(t *testing.T) {
 	}
 
 	for _, community := range comms {
-		comm, err := GetCommunity(community.ID)
+		comm, err := GetCommunityByID(community.ID)
 		if err != nil {
 			t.Errorf("Community %v not exist", community)
 			return

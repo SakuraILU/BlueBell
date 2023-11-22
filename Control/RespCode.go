@@ -10,6 +10,7 @@ const (
 	NotLogin
 	InvalidToken
 	CommunityNotExist
+	PostNotExist
 
 	ServerBusy
 
@@ -24,6 +25,7 @@ var error2text = map[Code]string{
 	NotLogin:          "未登录",
 	InvalidToken:      "非法校验码",
 	CommunityNotExist: "社区不存在",
+	PostNotExist:      "帖子不存在",
 
 	ServerBusy: "服务器繁忙",
 
