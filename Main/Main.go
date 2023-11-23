@@ -80,7 +80,7 @@ func startClient() {
 	// time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// create post
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 8; i++ {
 		post := GeneratePost()
 		if !CreatePost(token, post) {
 			panic("create post fail")
@@ -90,7 +90,7 @@ func startClient() {
 	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// get posts
-	post_details, err := GetPosts(token, 1, 0, 4, model.SCORE)
+	post_details, err := GetPosts(token, 1, 1, 6, model.SCORE)
 	if err != nil {
 		panic(err)
 	}
@@ -98,20 +98,39 @@ func startClient() {
 	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// vote for posts
+	for i := 0; i < 6; i++ {
+		vote := model.ParamVote{
+			PostID: post_details[i].Post.ID,
+			Choice: 1,
+		}
+		if !VoteForPost(token, vote) {
+			panic("vote fail")
+		}
+	}
+
+	// signup may fail because of duplicate username, just ignore it
+	param_signup = GenerateUserSignUp()
+	if !signup(param_signup) {
+		return
+	}
+
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+
+	param_login = model.ParamLogin{
+		Username: param_signup.Username,
+		Password: param_signup.Password,
+	}
+
+	// get communities
+	token, ok = login(param_login)
+	if !ok {
+		panic("login fail")
+	}
+
 	for i := 0; i < 4; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
-			Choice: 1,
-		}
-		if !VoteForPost(token, vote) {
-			panic("vote fail")
-		}
-	}
-
-	for i := 0; i < 2; i++ {
-		vote := model.ParamVote{
-			PostID: post_details[i].Post.ID,
-			Choice: 1,
+			Choice: -1,
 		}
 		if !VoteForPost(token, vote) {
 			panic("vote fail")
@@ -147,7 +166,7 @@ func startClient() {
 		}
 	}
 
-	for i := 3; i < 4; i++ {
+	for i := 5; i < 6; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
 			Choice: 1,
@@ -157,37 +176,10 @@ func startClient() {
 		}
 	}
 
-	// signup may fail because of duplicate username, just ignore it
-	param_signup = GenerateUserSignUp()
-	if !signup(param_signup) {
-		return
-	}
-
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
-
-	param_login = model.ParamLogin{
-		Username: param_signup.Username,
-		Password: param_signup.Password,
-	}
-
-	// get communities
-	token, ok = login(param_login)
-	if !ok {
-		panic("login fail")
-	}
-
-	for i := 2; i < 4; i++ {
-		vote := model.ParamVote{
-			PostID: post_details[i].Post.ID,
-			Choice: 1,
-		}
-		if !VoteForPost(token, vote) {
-			panic("vote fail")
-		}
-	}
+	time.Sleep((time.Duration(rand.Intn(3)+4) * time.Second))
 
 	// get posts
-	post_details, err = GetPosts(token, 1, 0, 4, model.SCORE)
+	post_details, err = GetPosts(token, 1, 1, 6, model.SCORE)
 	if err != nil {
 		panic(err)
 	}

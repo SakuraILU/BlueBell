@@ -14,6 +14,11 @@ func VoteForPostHandler(ctx *gin.Context) {
 		return
 	}
 
+	if !validateVote(param) {
+		WriteErrorResponse(ctx, InvalidParam)
+		return
+	}
+
 	userid, err := GetUserID(ctx)
 	if err != nil {
 		WriteErrorResponse(ctx, InvalidToken)

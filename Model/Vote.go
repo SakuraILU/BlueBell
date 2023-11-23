@@ -1,9 +1,9 @@
 package model
 
 const (
-	NEGTIVE  = "-1"
-	NOVATE   = "0"
-	POSITIVE = "1"
+	NEGATIVE = -1
+	CANCEL   = 0
+	POSITIVE = 1
 )
 
 type ParamVote struct {

@@ -4,6 +4,7 @@ import (
 	log "bluebell/Log"
 	model "bluebell/Model"
 	"fmt"
+	"strconv"
 )
 
 func VoteForPost(vote *model.ParamVote) (err error) {
@@ -24,7 +25,7 @@ func VoteForPost(vote *model.ParamVote) (err error) {
 
 func GetPositiveVote(pid int64) (nvote int64, err error) {
 	key := fmt.Sprintf("%s%d", KEYUSER_VOTE_OF_POST_ZSET, pid)
-	nvote, err = rdb.ZCount(key, model.POSITIVE, model.POSITIVE).Result()
+	nvote, err = rdb.ZCount(key, strconv.Itoa(model.POSITIVE), strconv.Itoa(model.POSITIVE)).Result()
 	if err != nil {
 		log.Errorf("Get positive vote for post %d fail", pid)
 	}

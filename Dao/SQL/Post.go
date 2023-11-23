@@ -39,5 +39,34 @@ func GetPostsByIDs(pids []int64) (posts []*model.Post, err error) {
 		log.Infof("Get %d posts success", len(posts))
 	}
 
+	posts = sortOrderByPID(posts, pids)
+
+	// for i, pid := range pids {
+	// 	if posts[i].ID != pid {
+	// 		log.Panic("post.ID is not match pid...")
+	// 	}
+	// }
 	return
+}
+
+func sortOrderByPID(posts []*model.Post, pids []int64) []*model.Post {
+	for i, pid := range pids {
+		if posts[i].ID == pid {
+			continue
+		}
+
+		j := i + 1
+		for ; j < len(pids); j++ {
+			if posts[j].ID == pid {
+				break
+			}
+		}
+
+		tmp := posts[i]
+		posts[i] = posts[j]
+		posts[j] = tmp
+	}
+
+	return posts
+
 }

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TTL_POST_INORDER_OF_COMMUNITY = 20
+	TTL_POST_INORDER_OF_COMMUNITY = 2
 )
 
 func CreatePost(post *model.Post) (err error) {
@@ -57,42 +57,10 @@ func GetPostIDsOfCommunity(param *model.ParamPostsQuary) (pids []int64, err erro
 		key_post_inorder_of_community = fmt.Sprintf("%s%d", KEYPOST_SCORE_OF_COMMUNITY, param.CommunityID)
 	}
 
-	// debug: get post:score
-	val, err := rdb.ZRevRangeWithScores(key_post_inorder, 0, -1).Result()
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	log.Error(key_post_inorder)
-	log.Error(val)
-
-	// debug: get post of community
-	val, err = rdb.ZRevRangeWithScores(key_post_of_community, 0, -1).Result()
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	log.Error(key_post_of_community)
-	log.Error(val)
-
 	start := (param.Page - 1) * param.Size
 	stop := param.Page*param.Size - 1
 	// print redis eval keys and args
-	log.Errorf("Eval keys: %v", []string{key_post_inorder, key_post_of_community, key_post_inorder_of_community})
 	res, err := rdb.EvalSha(scripts[GETPOSTOFCOMMUNITY].Sha, []string{key_post_inorder, key_post_of_community, key_post_inorder_of_community}, TTL_POST_INORDER_OF_COMMUNITY, start, stop).Result()
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-
-	// debug: get post of community:score
-	val, err = rdb.ZRevRangeWithScores(key_post_inorder_of_community, 0, -1).Result()
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	log.Error(key_post_inorder_of_community)
-	log.Error(val)
 
 	pids = make([]int64, 0)
 	for _, v := range res.([]interface{}) {
@@ -104,6 +72,15 @@ func GetPostIDsOfCommunity(param *model.ParamPostsQuary) (pids []int64, err erro
 	}
 
 	log.Error(pids)
+
+	return
+}
+
+func GetPostNumber() (n int64, err error) {
+	n, err = rdb.ZCard(KEYPOST_SCORE_ZSET).Result()
+	if err != nil {
+		log.Errorf("Get post number fail")
+	}
 
 	return
 }

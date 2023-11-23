@@ -1,6 +1,8 @@
 package control
 
-import model "bluebell/Model"
+import (
+	model "bluebell/Model"
+)
 
 func validateSignUp(param *model.ParamSignUp) bool {
 	if len(param.Username) <= 0 || len(param.Username) > 15 {
@@ -20,6 +22,14 @@ func validateSignUp(param *model.ParamSignUp) bool {
 
 func validateLogin(param *model.ParamLogin) bool {
 	if len(param.Username) <= 0 || len(param.Password) < 6 {
+		return false
+	}
+
+	return true
+}
+
+func validateVote(param *model.ParamVote) bool {
+	if param.Choice != model.POSITIVE && param.Choice != model.NEGATIVE && param.Choice != model.CANCEL {
 		return false
 	}
 

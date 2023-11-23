@@ -71,7 +71,7 @@ var scripts []Script = []Script{
 
 			local val = redis.call("EXISTS", key_post_inorder_of_community)
 			if val == 0 then
-				redis.call("ZINTERSTORE", key_post_inorder_of_community, 2, key_post_inorder, key_post_of_community, "AGGREGATE", "SUM")
+				redis.call("ZINTERSTORE", key_post_inorder_of_community, 2, key_post_inorder, key_post_of_community)
 				redis.call("EXPIRE", key_post_inorder_of_community, ttl)
 			end
 
