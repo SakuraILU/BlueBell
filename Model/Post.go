@@ -25,3 +25,15 @@ type ParamPostDetail struct {
 	Post            *Post
 	CommunityDetail *ParamCommunityDetail
 }
+
+const (
+	TIME  = "time"
+	SCORE = "score"
+)
+
+type ParamPostsQuary struct {
+	CommunityID int64
+	Page        int64
+	Size        int64
+	Order       string
+}

@@ -77,10 +77,10 @@ func startClient() {
 		log.Infof("community detail: %v", c_detail)
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	// time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// create post
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 40; i++ {
 		post := GeneratePost()
 		if !CreatePost(token, post) {
 			panic("create post fail")
@@ -90,7 +90,7 @@ func startClient() {
 	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// get posts
-	post_details, err := GetPosts(token, 1, 6)
+	post_details, err := GetPosts(token, 1, 0, 6, model.SCORE)
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +111,7 @@ func startClient() {
 	for i := 0; i < 4; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
-			Choice: -1,
+			Choice: 1,
 		}
 		if !VoteForPost(token, vote) {
 			panic("vote fail")
@@ -140,14 +140,43 @@ func startClient() {
 	for i := 0; i < 2; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
-			Choice: -1,
+			Choice: 1,
 		}
 		if !VoteForPost(token, vote) {
 			panic("vote fail")
 		}
 	}
 
-	for i := 1; i < 3; i++ {
+	for i := 5; i < 6; i++ {
+		vote := model.ParamVote{
+			PostID: post_details[i].Post.ID,
+			Choice: 1,
+		}
+		if !VoteForPost(token, vote) {
+			panic("vote fail")
+		}
+	}
+
+	// signup may fail because of duplicate username, just ignore it
+	param_signup = GenerateUserSignUp()
+	if !signup(param_signup) {
+		return
+	}
+
+	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+
+	param_login = model.ParamLogin{
+		Username: param_signup.Username,
+		Password: param_signup.Password,
+	}
+
+	// get communities
+	token, ok = login(param_login)
+	if !ok {
+		panic("login fail")
+	}
+
+	for i := 1; i < 4; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
 			Choice: 1,
@@ -158,7 +187,7 @@ func startClient() {
 	}
 
 	// get posts
-	post_details, err = GetPosts(token, 1, 6)
+	post_details, err = GetPosts(token, 1, 0, 6, model.SCORE)
 	if err != nil {
 		panic(err)
 	}
@@ -347,8 +376,8 @@ func CreatePost(token string, post model.ParamPost) bool {
 	return resp.StatusCode == http.StatusOK
 }
 
-func GetPosts(taken string, page, size int) ([]*model.ParamPostDetail, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/v1/posts?page=%d&size=%d", page, size), nil)
+func GetPosts(taken string, cid int, page, size int, order string) ([]*model.ParamPostDetail, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/v1/posts?cid=%d&page=%d&size=%d&order=%s", cid, page, size, order), nil)
 	if err != nil {
 		panic(err)
 	}

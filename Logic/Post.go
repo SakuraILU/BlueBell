@@ -3,6 +3,7 @@ package logic
 import (
 	rdb "bluebell/Dao/Rdb"
 	sql "bluebell/Dao/SQL"
+	log "bluebell/Log"
 	model "bluebell/Model"
 	"time"
 )
@@ -34,10 +35,25 @@ func CreatePost(param *model.ParamPost) (err error) {
 	return
 }
 
-func GetPosts(page, size int) (p_details []*model.ParamPostDetail, err error) {
+func GetPosts(param *model.ParamPostsQuary) (p_details []*model.ParamPostDetail, err error) {
+	var pids []int64
+	if param.CommunityID == 0 {
+		pids, err = rdb.GetPostIDs(param)
+	} else {
+		if _, err := sql.GetCommunityByID(param.CommunityID); err != nil {
+			log.Errorf(err.Error())
+			return nil, err
+		}
+		pids, err = rdb.GetPostIDsOfCommunity(param)
+	}
+
+	if err != nil {
+		return
+	}
+
 	p_details = make([]*model.ParamPostDetail, 0)
 
-	posts, err := sql.GetPosts(page, size)
+	posts, err := sql.GetPostsByIDs(pids)
 	if err != nil {
 		return nil, err
 	}
@@ -68,10 +84,6 @@ func GetPosts(page, size int) (p_details []*model.ParamPostDetail, err error) {
 		p_details = append(p_details, p_detail)
 	}
 
-	pids := make([]int64, 0)
-	for _, post := range posts {
-		pids = append(pids, post.ID)
-	}
 	nvotes, err := rdb.GetPositiveVotes(pids)
 	if err != nil {
 		return nil, err

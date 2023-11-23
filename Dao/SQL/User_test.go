@@ -31,7 +31,7 @@ func TestInsertUser(t *testing.T) {
 	}
 
 	for _, user := range users {
-		if !CheckUserExistByName(user.Username) {
+		if _, err := GetUserByName(user.Username); err != nil {
 			t.Errorf("User %v not exist", user)
 			return
 		}
@@ -70,7 +70,7 @@ func TestInsertUser2(t *testing.T) {
 	wg.Wait()
 
 	for _, user := range users {
-		if !CheckUserExistByName(user.Username) {
+		if _, err := GetUserByName(user.Username); err != nil {
 			t.Errorf("User %v not exist", user)
 		}
 	}

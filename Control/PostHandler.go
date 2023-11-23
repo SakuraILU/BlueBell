@@ -36,7 +36,12 @@ func CreatePostHandler(ctx *gin.Context) {
 }
 
 func GetPostListHandler(ctx *gin.Context) {
-	page_str, size_str := ctx.Query("page"), ctx.Query("size")
+	cid_str, page_str, size_str, order := ctx.Query("cid"), ctx.Query("page"), ctx.Query("size"), ctx.Query("order")
+	cid, err := strconv.Atoi(cid_str)
+	if err != nil {
+		WriteErrorResponse(ctx, InvalidParam)
+		return
+	}
 	page, err := strconv.Atoi(page_str)
 	if err != nil {
 		WriteErrorResponse(ctx, InvalidParam)
@@ -48,8 +53,15 @@ func GetPostListHandler(ctx *gin.Context) {
 		return
 	}
 
+	param := &model.ParamPostsQuary{
+		CommunityID: int64(cid),
+		Page:        int64(page),
+		Size:        int64(size),
+		Order:       order,
+	}
+
 	// logic.GetPosts
-	posts, err := logic.GetPosts(page, size)
+	posts, err := logic.GetPosts(param)
 	if err != nil {
 		WriteErrorResponse(ctx, ServerBusy)
 		return

@@ -6,7 +6,7 @@ import (
 )
 
 func SetToken(userid int64, token_str string) (err error) {
-	key := fmt.Sprintf("%s%d", KEYTOKEN_USER_SET_PREFIX, userid)
+	key := fmt.Sprintf("%s%d", KEYTOKEN_USER_OF_SET, userid)
 	if _, err = rdb.EvalSha(scripts[SETTOKEN].Sha, []string{key}, token_str, NDUPLICATE).Result(); err != nil {
 		log.Errorf(err.Error())
 		return
@@ -18,7 +18,7 @@ func SetToken(userid int64, token_str string) (err error) {
 }
 
 func GetTokenStrs(userid int64) (token_strs []string, err error) {
-	key := fmt.Sprintf("%s%d", KEYTOKEN_USER_SET_PREFIX, userid)
+	key := fmt.Sprintf("%s%d", KEYTOKEN_USER_OF_SET, userid)
 	if token_strs, err = rdb.LRange(key, 0, -1).Result(); err != nil {
 		log.Errorf("Get user %v's tokens fail", userid)
 		return

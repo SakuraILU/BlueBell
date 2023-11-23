@@ -16,9 +16,9 @@ func CreatePost(post *model.Post) (err error) {
 	return
 }
 
-func GetPosts(page, size int) (posts []*model.Post, err error) {
+func GetPostsByIDs(pids []int64) (posts []*model.Post, err error) {
 	posts = make([]*model.Post, 0)
-	err = db.Offset((page - 1) * size).Limit(size).Find(&posts).Error
+	err = db.Find(&posts, pids).Error
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {

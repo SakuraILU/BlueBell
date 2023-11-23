@@ -5,11 +5,14 @@ import (
 )
 
 const (
-	NDUPLICATE                    = 3
-	KEYTOKEN_USER_SET_PREFIX      = "token_user"
-	KEYPOST_SCORE_ZSET            = "(post:score)"
-	KEYPOST_TIME_ZSET             = "(post:time)"
-	KEYUSER_VOTE_POST_ZSET_PREFIX = "(user:vote)_post"
+	NDUPLICATE                 = 3
+	KEYTOKEN_USER_OF_SET       = "token_of_user"             // token of user_uid
+	KEYPOST_SCORE_ZSET         = "(post:score)"              // post:score
+	KEYPOST_TIME_ZSET          = "(post:time)"               // post:time
+	KEYUSER_VOTE_OF_POST_ZSET  = "(user:vote)_of_post"       // (user:vote) of post_pid
+	KEYPOST_OF_COMMUNITY_ZSET  = "post_of_community"         // posts of community_cid
+	KEYPOST_TIME_OF_COMMUNITY  = "(post:time)_of_community"  // post:time of community_cid
+	KEYPOST_SCORE_OF_COMMUNITY = "(post:score)_of_community" // post:score of community_cid
 )
 
 var (
@@ -22,11 +25,11 @@ func init() {
 		DB:   0,
 	})
 
-	for _, script := range scripts {
+	for i, script := range scripts {
 		sha, err := rdb.ScriptLoad(script.Lua).Result()
 		if err != nil {
 			panic(err)
 		}
-		script.Sha = sha
+		scripts[i].Sha = sha
 	}
 }

@@ -7,16 +7,16 @@ import (
 )
 
 func VoteForPost(vote *model.ParamVote) (err error) {
-	user_vote_post_key := fmt.Sprintf("%s%d", KEYUSER_VOTE_POST_ZSET_PREFIX, vote.PostID)
+	user_vote_of_post_key := fmt.Sprintf("%s%d", KEYUSER_VOTE_OF_POST_ZSET, vote.PostID)
 	uid := fmt.Sprint(vote.UserID)
-	orgchoice_float := rdb.ZScore(user_vote_post_key, uid).Val()
+	orgchoice_float := rdb.ZScore(user_vote_of_post_key, uid).Val()
 	orgchoice := int64(orgchoice_float)
 	log.Errorf("from choice %v to choice %v", orgchoice, vote.Choice)
 	if orgchoice == vote.Choice {
 		return
 	}
 
-	if err = rdb.EvalSha(scripts[SETVOTE].Sha, []string{KEYPOST_SCORE_ZSET, user_vote_post_key}, vote.PostID, vote.UserID, orgchoice, vote.Choice).Err(); err != nil {
+	if err = rdb.EvalSha(scripts[SETVOTE].Sha, []string{KEYPOST_SCORE_ZSET, user_vote_of_post_key}, vote.PostID, vote.UserID, orgchoice, vote.Choice).Err(); err != nil {
 		return
 	}
 
@@ -24,7 +24,7 @@ func VoteForPost(vote *model.ParamVote) (err error) {
 }
 
 func GetPositiveVote(pid int64) (nvote int64, err error) {
-	key := fmt.Sprintf("%s%d", KEYUSER_VOTE_POST_ZSET_PREFIX, pid)
+	key := fmt.Sprintf("%s%d", KEYUSER_VOTE_OF_POST_ZSET, pid)
 	nvote, err = rdb.ZCount(key, model.POSITIVE, model.POSITIVE).Result()
 	if err != nil {
 		log.Errorf("Get positive vote for post %d fail", pid)
@@ -38,7 +38,7 @@ func GetPositiveVotes(pids []int64) (nvotes []int64, err error) {
 
 	keys := make([]string, 0)
 	for _, pid := range pids {
-		keys = append(keys, fmt.Sprintf("%s%d", KEYUSER_VOTE_POST_ZSET_PREFIX, pid))
+		keys = append(keys, fmt.Sprintf("%s%d", KEYUSER_VOTE_OF_POST_ZSET, pid))
 	}
 	log.Warn(keys)
 

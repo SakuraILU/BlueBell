@@ -17,10 +17,11 @@ func SignUp(param *model.ParamSignUp) (err error) {
 		Password: encryptPassword(param.Password),
 	}
 
-	if sql.CheckUserExistByName(user.Username) {
+	if _, err = sql.GetUserByName(user.Username); err == nil {
 		err = fmt.Errorf("user %s already exist", user.Username)
 		return
 	}
+
 	// dao: write to database
 	if err = sql.CreateUser(user); err != nil {
 		return

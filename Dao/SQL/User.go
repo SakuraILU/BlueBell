@@ -15,14 +15,6 @@ func CreateUser(user *model.User) (err error) {
 	return
 }
 
-func CheckUserExistByName(name string) bool {
-	if _, err := GetUserByName(name); err == nil {
-		return true
-	} else {
-		return false
-	}
-}
-
 func GetUserByName(name string) (user *model.User, err error) {
 	user = &model.User{}
 	err = db.Where("username = ?", name).First(user).Error

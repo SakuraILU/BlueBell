@@ -8,6 +8,7 @@ type Script struct {
 const (
 	SETTOKEN = iota
 	SETPOST
+	GETPOSTOFCOMMUNITY
 	SETVOTE
 	GETVOTES
 )
@@ -32,11 +33,13 @@ var scripts []Script = []Script{
 		Lua: `
 			local post_score_key = KEYS[1]
 			local post_time_key = KEYS[2]
+			local post_community_key = KEYS[3]
 			local pid = ARGV[1]
 			local time = ARGV[2]
 
 			redis.call("ZADD", post_score_key, 0, pid)
 			redis.call("ZADD", post_time_key, time, pid)
+			redis.call("ZADD", post_community_key, 0, pid)
 
 			return 1
 		`,
@@ -56,6 +59,26 @@ var scripts []Script = []Script{
 
 			return 1
 		`,
+	},
+	GETPOSTOFCOMMUNITY: {
+		Lua: `
+			local key_post_inorder = KEYS[1]
+			local key_post_of_community = KEYS[2]
+			local key_post_inorder_of_community = KEYS[3]
+			local ttl = tonumber(ARGV[1])
+			local start = tonumber(ARGV[2])
+			local stop = tonumber(ARGV[3])
+
+			local val = redis.call("EXISTS", key_post_inorder_of_community)
+			if val == 0 then
+				redis.call("ZINTERSTORE", key_post_inorder_of_community, 2, key_post_inorder, key_post_of_community, "AGGREGATE", "SUM")
+				redis.call("EXPIRE", key_post_inorder_of_community, ttl)
+			end
+
+			local res = redis.call("ZREVRANGE", key_post_inorder_of_community, start, stop)
+
+			return res
+			`,
 	},
 	GETVOTES: {
 		Lua: `
