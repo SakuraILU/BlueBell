@@ -80,7 +80,7 @@ func startClient() {
 	// time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// create post
-	for i := 0; i < 40; i++ {
+	for i := 0; i < 6; i++ {
 		post := GeneratePost()
 		if !CreatePost(token, post) {
 			panic("create post fail")
@@ -90,7 +90,7 @@ func startClient() {
 	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// get posts
-	post_details, err := GetPosts(token, 1, 0, 6, model.SCORE)
+	post_details, err := GetPosts(token, 1, 0, 4, model.SCORE)
 	if err != nil {
 		panic(err)
 	}
@@ -98,7 +98,7 @@ func startClient() {
 	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// vote for posts
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 4; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
 			Choice: 1,
@@ -108,7 +108,7 @@ func startClient() {
 		}
 	}
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 2; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
 			Choice: 1,
@@ -147,7 +147,7 @@ func startClient() {
 		}
 	}
 
-	for i := 5; i < 6; i++ {
+	for i := 3; i < 4; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
 			Choice: 1,
@@ -176,7 +176,7 @@ func startClient() {
 		panic("login fail")
 	}
 
-	for i := 1; i < 4; i++ {
+	for i := 2; i < 4; i++ {
 		vote := model.ParamVote{
 			PostID: post_details[i].Post.ID,
 			Choice: 1,
@@ -187,7 +187,7 @@ func startClient() {
 	}
 
 	// get posts
-	post_details, err = GetPosts(token, 1, 0, 6, model.SCORE)
+	post_details, err = GetPosts(token, 1, 0, 4, model.SCORE)
 	if err != nil {
 		panic(err)
 	}
@@ -235,7 +235,7 @@ func GeneratePost() model.ParamPost {
 	return model.ParamPost{
 		Title:       title,
 		Content:     content,
-		CommunityID: 1 + rand.Int63n(4),
+		CommunityID: 1,
 	}
 }
 
