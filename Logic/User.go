@@ -17,11 +17,6 @@ func SignUp(param *model.ParamSignUp) (err error) {
 		Password: encryptPassword(param.Password),
 	}
 
-	if _, err = sql.GetUserByName(user.Username); err == nil {
-		err = fmt.Errorf("user %s already exist", user.Username)
-		return
-	}
-
 	// dao: write to database
 	if err = sql.CreateUser(user); err != nil {
 		return
@@ -33,9 +28,9 @@ func SignUp(param *model.ParamSignUp) (err error) {
 func encryptPassword(password string) string {
 	h := md5.New()
 	h.Write([]byte(password))
-	epassword := h.Sum([]byte(salt))
+	h.Write([]byte(salt))
 
-	return string(epassword)
+	return string(h.Sum(nil))
 }
 
 func Login(param *model.ParamLogin) (token_str string, err error) {

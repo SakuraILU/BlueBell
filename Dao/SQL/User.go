@@ -6,12 +6,19 @@ import (
 )
 
 func CreateUser(user *model.User) (err error) {
+	_, err = GetUserByName(user.Username)
+	if err == nil {
+		log.Errorf("User %v already exist", user)
+		return
+	}
+
 	err = db.Create(&user).Error
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {
 		log.Infof("Regist user %v success", user)
 	}
+
 	return
 }
 

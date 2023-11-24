@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TTL_POST_INORDER_OF_COMMUNITY = 2
+	TTL_POST_INORDER_OF_COMMUNITY = 20
 )
 
 func CreatePost(post *model.Post) (err error) {
@@ -70,8 +70,6 @@ func GetPostIDsOfCommunity(param *model.ParamPostsQuary) (pids []int64, err erro
 		}
 		pids = append(pids, int64(pid))
 	}
-
-	log.Error(pids)
 
 	return
 }

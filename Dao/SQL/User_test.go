@@ -3,8 +3,10 @@ package sql
 import (
 	model "bluebell/Model"
 	"fmt"
+	"math/rand"
 	"sync"
 	"testing"
+	"time"
 )
 
 func gnerateUsers(nuser int) (users []model.User) {
@@ -49,15 +51,16 @@ func TestInsertUser(t *testing.T) {
 
 // try multi goroutine
 func TestInsertUser2(t *testing.T) {
-	nuser := 100
+	nuser := 500
 	users := gnerateUsers(nuser)
 
-	ngo := 10
+	ngo := 15
 	wg := sync.WaitGroup{}
 	for i := 0; i < ngo; i++ {
 		wg.Add(1)
 		go func(i int) {
 			for k := i; k < nuser; k += ngo {
+				time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 				err := CreateUser(&users[k])
 				if err != nil {
 					t.Error(err.Error())
@@ -68,12 +71,6 @@ func TestInsertUser2(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-
-	for _, user := range users {
-		if _, err := GetUserByName(user.Username); err != nil {
-			t.Errorf("User %v not exist", user)
-		}
-	}
 
 	for _, user := range users {
 		if _, err := GetUserByName(user.Username); err != nil {

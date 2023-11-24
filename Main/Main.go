@@ -80,7 +80,7 @@ func startClient() {
 	// time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
 
 	// create post
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 10; i++ {
 		post := GeneratePost()
 		if !CreatePost(token, post) {
 			panic("create post fail")
@@ -227,7 +227,7 @@ func GeneratePost() model.ParamPost {
 	return model.ParamPost{
 		Title:       title,
 		Content:     content,
-		CommunityID: 1,
+		CommunityID: int64(1 + rand.Intn(4)),
 	}
 }
 
@@ -461,7 +461,7 @@ func main() {
 	// before run this test, delete the database file and flushall the redis data
 	// and don't use too many goroutine! 5000 goroutine is enough
 	// otherwise, database may be locked and cause reading fail -> panic
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func() {
 			startClient()

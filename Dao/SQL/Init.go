@@ -3,6 +3,7 @@ package sql
 import (
 	log "bluebell/Log"
 	model "bluebell/Model"
+	"path"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -11,8 +12,10 @@ import (
 var db *gorm.DB
 
 func init() {
+	db_path := path.Join("bluebell.db")
+
 	var err error
-	db, err = gorm.Open(sqlite.Open("bluebell.db"), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open(db_path), &gorm.Config{})
 	if err != nil {
 		log.Panic(err.Error())
 	}

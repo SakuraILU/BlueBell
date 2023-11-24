@@ -20,11 +20,6 @@ func CreatePost(param *model.ParamPost) (err error) {
 		Update_time: time.Now(),
 	}
 
-	_, err = sql.GetCommunityByID(param.CommunityID)
-	if err != nil {
-		return
-	}
-
 	if err = sql.CreatePost(post); err != nil {
 		return
 	}
@@ -52,10 +47,12 @@ func GetPosts(param *model.ParamPostsQuary) (p_details []*model.ParamPostDetail,
 	if param.CommunityID == 0 {
 		pids, err = rdb.GetPostIDs(param)
 	} else {
-		if _, err := sql.GetCommunityByID(param.CommunityID); err != nil {
+		_, err = sql.GetCommunityByID(param.CommunityID)
+		if err != nil {
 			log.Errorf(err.Error())
-			return nil, err
+			return
 		}
+
 		pids, err = rdb.GetPostIDsOfCommunity(param)
 	}
 

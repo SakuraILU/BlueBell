@@ -15,7 +15,7 @@ func CreatePost(post *model.Post) (err error) {
 		log.Infof("Insert post %v success", post)
 	}
 
-	return
+	return err
 }
 
 func GetPostByID(id int64) (post *model.Post, err error) {
