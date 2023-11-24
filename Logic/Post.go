@@ -10,7 +10,6 @@ import (
 
 func CreatePost(param *model.ParamPost) (err error) {
 	post := &model.Post{
-		ID:          post_sf.NextID(),
 		Title:       param.Title,
 		Content:     param.Content,
 		AuthorID:    param.AuthorID,

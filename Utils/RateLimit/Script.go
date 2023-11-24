@@ -1,6 +1,18 @@
 package ratelimit
 
-var script = `
+var init_script = `
+	local key_ntoken = KEYS[1]
+	local key_lasttime = KEYS[2]
+
+	local curtime = tonumber(ARGV[1])
+
+	redis.call("SET", key_ntoken, 0)
+	redis.call("SET", key_lasttime, curtime)
+
+	return 1
+`
+
+var allow_script = `
 	local key_ntoken = KEYS[1]
 	local key_lasttime = KEYS[2]
 

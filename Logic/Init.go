@@ -15,7 +15,6 @@ const (
 
 var (
 	user_sf *snowflake.Snowflake
-	post_sf *snowflake.Snowflake
 )
 
 func init() {
@@ -26,10 +25,6 @@ func init() {
 		log.Panic(err.Error())
 	}
 	user_sf, err = snowflake.NewSnowflake(stime, datacenterid, machineid)
-	if err != nil {
-		log.Panic(err.Error())
-	}
-	post_sf, err = snowflake.NewSnowflake(stime, datacenterid, machineid)
 	if err != nil {
 		log.Panic(err.Error())
 	}

@@ -18,10 +18,10 @@ redis:
   tokendb: 0
   postdb: 1
   ratelimitdb: 2
-  ttl_post_inorder_of_community: 5
+  ttl_post_inorder_of_community: 20
 ratelimit:
-  rate: 50
-  nbucket: 1000
+  rate: 20
+  nbucket: 800
 jwt:
   issuer: Bluebell
   expiretime: 2h0m0s

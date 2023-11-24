@@ -3,6 +3,7 @@ package model
 import "time"
 
 type Post struct {
+	// auto increment
 	ID          int64 `gorm:"primaryKey"`
 	Title       string
 	Content     string

@@ -97,12 +97,12 @@ var Cfg *Config = &Config{
 		TokenDB:                       0,
 		PostDB:                        1,
 		RateLimitDB:                   2,
-		TTL_POST_INORDER_OF_COMMUNITY: 5, // seconds
+		TTL_POST_INORDER_OF_COMMUNITY: 20, // seconds
 	},
 
 	RateLimit: RateLimitConfig{
-		Rate:    50,   // per second
-		NBucket: 1000, // bucket number
+		Rate:    20,  // per second
+		NBucket: 800, // bucket number
 	},
 
 	Jwt: JwtConfig{

@@ -14,10 +14,10 @@ const (
 )
 
 type RateLimit struct {
-	rdb        *redis.Client
-	sha_script string
-	rate       int
-	nbucket    int
+	rdb              *redis.Client
+	sha_allow_script string
+	rate             int
+	nbucket          int
 }
 
 func NewRateLimit(rate int, nbucket int) *RateLimit {
@@ -31,23 +31,23 @@ func NewRateLimit(rate int, nbucket int) *RateLimit {
 		nbucket: nbucket,
 	}
 
-	sha, err := rl.rdb.ScriptLoad(script).Result()
+	sha, err := rl.rdb.ScriptLoad(allow_script).Result()
 	if err != nil {
 		log.Panic(err.Error())
 	}
-	rl.sha_script = sha
+	rl.sha_allow_script = sha
 
-	rl.rdb.Set(KEYNTOKEN, 0, 0)
-	// second time
-	curtime := time.Now().Unix()
-	rl.rdb.Set(KEYLASTTIME, curtime, 0)
+	err = rl.rdb.Eval(init_script, []string{KEYNTOKEN, KEYLASTTIME}, time.Now().Unix()).Err()
+	if err != nil {
+		log.Panic(err.Error())
+	}
 
 	return rl
 }
 
 func (rl *RateLimit) AllowN(n int) bool {
 	curtime := time.Now().Unix()
-	res, err := rl.rdb.EvalSha(rl.sha_script, []string{KEYNTOKEN, KEYLASTTIME}, n, rl.rate, rl.nbucket, curtime).Result()
+	res, err := rl.rdb.EvalSha(rl.sha_allow_script, []string{KEYNTOKEN, KEYLASTTIME}, n, rl.rate, rl.nbucket, curtime).Result()
 
 	if err != nil {
 		return false
