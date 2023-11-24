@@ -55,9 +55,6 @@ func CreateCommunity(community *model.Community) (err error) {
 func GetCommunities() (communities []*model.Community, err error) {
 	communities = make([]*model.Community, 0)
 	err = db.Find(&communities).Error
-	for _, community := range communities {
-		log.Infof("Get community %v", community)
-	}
 	if err != nil {
 		log.Errorf(err.Error())
 	} else {

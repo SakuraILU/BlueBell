@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	NDUPLICATE                 = 3
 	KEYTOKEN_USER_OF_SET       = "token_of_user"             // token of user_uid
 	KEYPOST_SCORE_ZSET         = "(post:score)"              // post:score
 	KEYPOST_TIME_ZSET          = "(post:time)"               // post:time
@@ -18,18 +17,28 @@ const (
 )
 
 var (
-	rdb *redis.Client
+	token_rdb *redis.Client
+	// post_rdb  *redis.Client
+	post_rdb *redis.Client
 )
 
 func init() {
-	rdb = redis.NewClient(&redis.Options{
+	token_rdb = redis.NewClient(&redis.Options{
 		Addr:     config.Cfg.Redis.Addr,
 		Password: config.Cfg.Redis.Password,
 		DB:       config.Cfg.Redis.TokenDB,
 	})
 
+	post_rdb = redis.NewClient(&redis.Options{
+		Addr:     config.Cfg.Redis.Addr,
+		Password: config.Cfg.Redis.Password,
+		DB:       config.Cfg.Redis.PostDB,
+	})
+
+	// all the database shares their scripts
+	// so just use any one of them to load scripts
 	for i, script := range scripts {
-		sha, err := rdb.ScriptLoad(script.Lua).Result()
+		sha, err := token_rdb.ScriptLoad(script.Lua).Result()
 		if err != nil {
 			panic(err)
 		}

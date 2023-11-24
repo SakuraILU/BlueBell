@@ -1,6 +1,7 @@
 package rdb
 
 import (
+	config "bluebell/Config"
 	"math/rand"
 	"sync"
 	"testing"
@@ -9,7 +10,7 @@ import (
 
 // test SetTokens and GetToken
 func TestRedis1(t *testing.T) {
-	rdb.FlushAll()
+	token_rdb.FlushAll()
 
 	rand.Seed(time.Now().Unix())
 
@@ -36,7 +37,7 @@ func TestRedis1(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	if len(tokens) != NDUPLICATE {
+	if len(tokens) != config.Cfg.Logic.NDuplicateLogin {
 		t.Errorf("GetTokenStrs fail, tokens: %v", tokens)
 		return
 	}
@@ -44,7 +45,7 @@ func TestRedis1(t *testing.T) {
 
 // test multi goroutine SetTokens and GetToken
 func TestRedis2(t *testing.T) {
-	rdb.FlushAll()
+	token_rdb.FlushAll()
 
 	rand.Seed(time.Now().Unix())
 
@@ -81,7 +82,7 @@ func TestRedis2(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	if len(tokens) != NDUPLICATE {
+	if len(tokens) != config.Cfg.Logic.NDuplicateLogin {
 		t.Errorf("GetTokenStrs fail, tokens: %v", tokens)
 		return
 	}

@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	KEYNTOKEN   = "ratelimit::ntoken"
-	KEYLASTTIME = "ratelimit::lasttime"
+	KEYNTOKEN   = "ntoken"
+	KEYLASTTIME = "lasttime"
 )
 
 type RateLimit struct {

@@ -7,7 +7,7 @@ import (
 )
 
 func TestVote1(t *testing.T) {
-	rdb.FlushAll()
+	post_rdb.FlushAll()
 
 	posts := generatePost(5)
 	for _, post := range posts {
@@ -60,7 +60,7 @@ func TestVote1(t *testing.T) {
 }
 
 func TestVote2(t *testing.T) {
-	rdb.FlushAll()
+	post_rdb.FlushAll()
 
 	posts := generatePost(5)
 	for _, post := range posts {

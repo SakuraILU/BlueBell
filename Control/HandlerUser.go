@@ -22,8 +22,6 @@ func SignUpHandler(ctx *gin.Context) {
 		return
 	}
 
-	log.Warnf("try to regist user %v", param)
-
 	// signup the user
 	if err := logic.SignUp(param); err != nil {
 		WriteErrorResponse(ctx, UserExist)
@@ -57,6 +55,4 @@ func LoginHandler(ctx *gin.Context) {
 	} else {
 		WriteErrorResponse(ctx, UserNotExist)
 	}
-
-	return
 }

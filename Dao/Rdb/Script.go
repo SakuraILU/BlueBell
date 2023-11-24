@@ -8,9 +8,9 @@ type Script struct {
 const (
 	SETTOKEN = iota
 	SETPOST
-	GETPOSTOFCOMMUNITY
 	SETVOTE
 	GETVOTES
+	GETPOSTOFCOMMUNITY
 )
 
 var scripts []Script = []Script{
@@ -18,9 +18,9 @@ var scripts []Script = []Script{
 		Lua: `
 			local key = KEYS[1]
 			local token_str = ARGV[1]
-			local cap = tonumber(ARGV[2])
+			local nduplicatelogin = tonumber(ARGV[2])
 
-			while redis.call("LLEN", key) >= cap do
+			while redis.call("LLEN", key) >= nduplicatelogin do
 				redis.call("LPOP", key)
 			end
 
@@ -60,6 +60,24 @@ var scripts []Script = []Script{
 			return 1
 		`,
 	},
+	GETVOTES: {
+		Lua: `
+			local nvotes = {}
+
+			for _, key in ipairs(KEYS) do
+				local vote, err = redis.call("ZCOUNT", key, ARGV[1], ARGV[1])
+				
+				if err then
+					redis.log(redis.LOG_WARNING, "获取帖子的正面投票失败")
+					return nil, err
+				end
+
+				table.insert(nvotes, vote)
+			end
+
+			return nvotes
+		`,
+	},
 	GETPOSTOFCOMMUNITY: {
 		Lua: `
 			local key_post_inorder = KEYS[1]
@@ -79,23 +97,5 @@ var scripts []Script = []Script{
 
 			return res
 			`,
-	},
-	GETVOTES: {
-		Lua: `
-			local nvotes = {}
-
-			for _, key in ipairs(KEYS) do
-				local vote, err = redis.call("ZCOUNT", key, ARGV[1], ARGV[1])
-				
-				if err then
-					redis.log(redis.LOG_WARNING, "获取帖子的正面投票失败")
-					return nil, err
-				end
-
-				table.insert(nvotes, vote)
-			end
-
-			return nvotes
-		`,
 	},
 }

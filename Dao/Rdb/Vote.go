@@ -10,13 +10,13 @@ import (
 func VoteForPost(vote *model.ParamVote) (err error) {
 	user_vote_of_post_key := fmt.Sprintf("%s%d", KEYUSER_VOTE_OF_POST_ZSET, vote.PostID)
 	uid := fmt.Sprint(vote.UserID)
-	orgchoice_float := rdb.ZScore(user_vote_of_post_key, uid).Val()
+	orgchoice_float := post_rdb.ZScore(user_vote_of_post_key, uid).Val()
 	orgchoice := int64(orgchoice_float)
 	if orgchoice == vote.Choice {
 		return
 	}
 
-	if err = rdb.EvalSha(scripts[SETVOTE].Sha, []string{KEYPOST_SCORE_ZSET, user_vote_of_post_key}, vote.PostID, vote.UserID, orgchoice, vote.Choice).Err(); err != nil {
+	if err = post_rdb.EvalSha(scripts[SETVOTE].Sha, []string{KEYPOST_SCORE_ZSET, user_vote_of_post_key}, vote.PostID, vote.UserID, orgchoice, vote.Choice).Err(); err != nil {
 		return
 	}
 
@@ -25,7 +25,7 @@ func VoteForPost(vote *model.ParamVote) (err error) {
 
 func GetPositiveVote(pid int64) (nvote int64, err error) {
 	key := fmt.Sprintf("%s%d", KEYUSER_VOTE_OF_POST_ZSET, pid)
-	nvote, err = rdb.ZCount(key, strconv.Itoa(model.POSITIVE), strconv.Itoa(model.POSITIVE)).Result()
+	nvote, err = post_rdb.ZCount(key, strconv.Itoa(model.POSITIVE), strconv.Itoa(model.POSITIVE)).Result()
 	if err != nil {
 		log.Errorf("Get positive vote for post %d fail", pid)
 	}
@@ -41,7 +41,7 @@ func GetPositiveVotes(pids []int64) (nvotes []int64, err error) {
 		keys = append(keys, fmt.Sprintf("%s%d", KEYUSER_VOTE_OF_POST_ZSET, pid))
 	}
 
-	val, err := rdb.EvalSha(scripts[GETVOTES].Sha, keys, model.POSITIVE).Result()
+	val, err := post_rdb.EvalSha(scripts[GETVOTES].Sha, keys, model.POSITIVE).Result()
 	if err != nil {
 		log.Errorf("Get positive votes for posts %v fail", pids)
 		return

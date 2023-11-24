@@ -45,8 +45,6 @@ func Login(param *model.ParamLogin) (token_str string, err error) {
 		return
 	}
 
-	log.Infof("user %s login success", user.Username)
-
 	token_str, err = cookie.GetToken(user)
 	if err != nil {
 		log.Errorf("cookie generation wrong!")

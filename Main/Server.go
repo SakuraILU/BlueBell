@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var serveraddr = config.Cfg.IP + ":" + config.Cfg.Port
+var serveraddr = config.Cfg.Server.IP + ":" + config.Cfg.Server.Port
 
 func startServer() {
 	r := gin.Default()

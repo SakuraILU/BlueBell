@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	cfg_path := path.Join("Config", "config.yaml")
+	cfg_path := path.Join("config.yaml")
 	// if no config.yaml, create a config.yaml
 	if _, err := os.Stat(cfg_path); os.IsNotExist(err) {
 		f, err := os.Create(cfg_path)

@@ -2,14 +2,27 @@ package config
 
 import "time"
 
+type Server struct {
+	IP   string `yaml:"ip"`
+	Port string `yaml:"port"`
+}
+
 type SQLiteConfig struct {
 	DBfile string `yaml:"dbfile"`
+}
+
+type LogicConfig struct {
+	PasswordRange   [2]int `yaml:"passwordrange"`
+	UsernameRange   [2]int `yaml:"maxusernamelen"`
+	NDuplicateLogin int    `yaml:"nduplicatelogin"`
+	MaxPageSize     int64  `yaml:"maxpagesize"`
 }
 
 type RedisConfig struct {
 	Addr                          string `yaml:"addr"`
 	Password                      string `yaml:"password"`
 	TokenDB                       int    `yaml:"tokendb"`
+	PostDB                        int    `yaml:"postdb"`
 	RateLimitDB                   int    `yaml:"ratelimitdb"`
 	TTL_POST_INORDER_OF_COMMUNITY int    `yaml:"ttl_post_inorder_of_community"`
 }
@@ -17,11 +30,6 @@ type RedisConfig struct {
 type RateLimitConfig struct {
 	Rate    int `yaml:"rate"`
 	NBucket int `yaml:"nbucket"`
-}
-
-type LogConfig struct {
-	Logfile  string `yaml:"logfile"`
-	Loglevel string `yaml:"loglevel"`
 }
 
 type JwtConfig struct {
@@ -35,13 +43,20 @@ type SnowflakeConfig struct {
 	MachineID    int64  `yaml:"machineid"`
 }
 
+type LogConfig struct {
+	Logfile  string `yaml:"logfile"`
+	Loglevel string `yaml:"loglevel"`
+}
+
 type Config struct {
 	// Server
-	IP   string `yaml:"ip"`
-	Port string `yaml:"port"`
+	Server Server `yaml:"server"`
 
 	// SQLite
 	SQLite SQLiteConfig `yaml:"sqlite"`
+
+	// Logic
+	Logic LogicConfig `yaml:"logic"`
 
 	// Redis
 	Redis RedisConfig `yaml:"redis"`
@@ -49,34 +64,44 @@ type Config struct {
 	// RateLimit
 	RateLimit RateLimitConfig `yaml:"ratelimit"`
 
-	// Log
-	Log LogConfig `yaml:"log"`
-
 	// Jwt
 	Jwt JwtConfig `yaml:"jwt"`
 
 	// Snowflake
 	Snowflake SnowflakeConfig `yaml:"snowflake"`
+
+	// Log
+	Log LogConfig `yaml:"log"`
 }
 
 var Cfg *Config = &Config{
-	IP:   "localhost",
-	Port: "6500",
+	Server: Server{
+		IP:   "localhost",
+		Port: "8080",
+	},
 
 	SQLite: SQLiteConfig{
 		DBfile: "bluebell.db",
+	},
+
+	Logic: LogicConfig{
+		UsernameRange:   [2]int{4, 16},
+		PasswordRange:   [2]int{8, 20},
+		NDuplicateLogin: 3,
+		MaxPageSize:     10,
 	},
 
 	Redis: RedisConfig{
 		Addr:                          "localhost:6379",
 		Password:                      "",
 		TokenDB:                       0,
-		RateLimitDB:                   1,
-		TTL_POST_INORDER_OF_COMMUNITY: 20, // seconds
+		PostDB:                        1,
+		RateLimitDB:                   2,
+		TTL_POST_INORDER_OF_COMMUNITY: 5, // seconds
 	},
 
 	RateLimit: RateLimitConfig{
-		Rate:    10,   // per second
+		Rate:    50,   // per second
 		NBucket: 1000, // bucket number
 	},
 

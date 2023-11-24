@@ -5,7 +5,6 @@ import (
 	sql "bluebell/Dao/SQL"
 	log "bluebell/Log"
 	model "bluebell/Model"
-	"fmt"
 	"time"
 )
 
@@ -32,17 +31,6 @@ func CreatePost(param *model.ParamPost) (err error) {
 }
 
 func GetPosts(param *model.ParamPostsQuary) (p_details []*model.ParamPostDetail, err error) {
-	npost, err := rdb.GetPostNumber()
-	if err != nil {
-		return nil, err
-	}
-	start := (param.Page - 1) * param.Size
-	if start >= npost {
-		err = fmt.Errorf("page %d is out of range", param.Page)
-		log.Errorf(err.Error())
-		return
-	}
-
 	var pids []int64
 	if param.CommunityID == 0 {
 		pids, err = rdb.GetPostIDs(param)

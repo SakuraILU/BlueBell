@@ -15,7 +15,7 @@ var httpaddr = "http://" + serveraddr
 var c = &http.Client{}
 
 func startClient() {
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	param_signup := GenerateUserSignUp()
 	// signup may fail because of duplicate username, just ignore it
@@ -23,7 +23,7 @@ func startClient() {
 		return
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	param_login := model.ParamLogin{
 		Username: param_signup.Username,
@@ -36,14 +36,14 @@ func startClient() {
 		panic("login fail")
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	communities, err := GetCommunities(token)
 	if err != nil {
 		panic(err)
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	for _, community := range communities {
 		c_detail, err := GetCommunityDetail(token, community.ID)
@@ -53,7 +53,7 @@ func startClient() {
 		log.Infof("community detail: %v", c_detail)
 	}
 
-	// time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	// time.Sleep((time.Duration(rand.Intn(1)) * time.Second))
 
 	// create post
 	for i := 0; i < 10; i++ {
@@ -63,7 +63,7 @@ func startClient() {
 		}
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	// get posts
 	post_details, err := GetPosts(token, 1, 1, 6, model.SCORE)
@@ -71,7 +71,7 @@ func startClient() {
 		panic(err)
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	// vote for posts
 	for i := 0; i < 6; i++ {
@@ -90,7 +90,7 @@ func startClient() {
 		return
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	param_login = model.ParamLogin{
 		Username: param_signup.Username,
@@ -119,7 +119,7 @@ func startClient() {
 		return
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	param_login = model.ParamLogin{
 		Username: param_signup.Username,
@@ -152,7 +152,7 @@ func startClient() {
 		}
 	}
 
-	time.Sleep((time.Duration(rand.Intn(3)+4) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	// get posts
 	post_details, err = GetPosts(token, 1, 1, 6, model.SCORE)
@@ -163,7 +163,7 @@ func startClient() {
 		log.Infof("[%d] post: title %v, community %v, vote %v", post_detail.Post.ID, post_detail.Post.Title, post_detail.CommunityDetail.Name, post_detail.NVote)
 	}
 
-	time.Sleep((time.Duration(rand.Intn(4)+1) * time.Second))
+	time.Sleep((time.Duration(rand.Intn(2)) * time.Second))
 
 	// get post
 	post_detail, err := GetPost(token, post_details[len(post_details)-1].Post.ID)

@@ -43,12 +43,12 @@ func GetPostListHandler(ctx *gin.Context) {
 		return
 	}
 	page, err := strconv.Atoi(page_str)
-	if err != nil {
+	if err != nil || page < 1 {
 		WriteErrorResponse(ctx, InvalidParam)
 		return
 	}
 	size, err := strconv.Atoi(size_str)
-	if err != nil {
+	if err != nil || size < 1 {
 		WriteErrorResponse(ctx, InvalidParam)
 		return
 	}
@@ -58,6 +58,11 @@ func GetPostListHandler(ctx *gin.Context) {
 		Page:        int64(page),
 		Size:        int64(size),
 		Order:       order,
+	}
+
+	if !validatePostsQuary(param) {
+		WriteErrorResponse(ctx, InvalidParam)
+		return
 	}
 
 	// logic.GetPosts
@@ -86,5 +91,4 @@ func GetPostDetailHandler(ctx *gin.Context) {
 	}
 
 	WriteSuccessResponse(ctx, post)
-	return
 }
