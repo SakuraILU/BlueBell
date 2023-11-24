@@ -1,15 +1,12 @@
 package rdb
 
 import (
+	config "bluebell/Config"
 	log "bluebell/Log"
 	model "bluebell/Model"
 	"fmt"
 	"strconv"
 	"time"
-)
-
-const (
-	TTL_POST_INORDER_OF_COMMUNITY = 20
 )
 
 func CreatePost(post *model.Post) (err error) {
@@ -60,7 +57,8 @@ func GetPostIDsOfCommunity(param *model.ParamPostsQuary) (pids []int64, err erro
 	start := (param.Page - 1) * param.Size
 	stop := param.Page*param.Size - 1
 	// print redis eval keys and args
-	res, err := rdb.EvalSha(scripts[GETPOSTOFCOMMUNITY].Sha, []string{key_post_inorder, key_post_of_community, key_post_inorder_of_community}, TTL_POST_INORDER_OF_COMMUNITY, start, stop).Result()
+	ttl_post_inorder_of_community := config.Cfg.Redis.TTL_POST_INORDER_OF_COMMUNITY
+	res, err := rdb.EvalSha(scripts[GETPOSTOFCOMMUNITY].Sha, []string{key_post_inorder, key_post_of_community, key_post_inorder_of_community}, ttl_post_inorder_of_community, start, stop).Result()
 
 	pids = make([]int64, 0)
 	for _, v := range res.([]interface{}) {

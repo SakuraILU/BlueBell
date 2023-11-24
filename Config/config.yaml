@@ -1,0 +1,23 @@
+ip: localhost
+port: "6666"
+sqlite:
+  dbfile: Dao/SQL/bluebell.db
+redis:
+  addr: localhost:6379
+  password: ""
+  tokendb: 0
+  ratelimitdb: 1
+  ttl_post_inorder_of_community: 20
+ratelimit:
+  rate: 50
+  nbucket: 1000
+log:
+  logfile: Log/bluebell.log
+  loglevel: info
+jwt:
+  issuer: Bluebell
+  expiretime: 2h0m0s
+snowflake:
+  starttime: "2020-01-01 00:00:00"
+  datacenterid: 0
+  machineid: 0

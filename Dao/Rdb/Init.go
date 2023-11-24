@@ -1,6 +1,8 @@
 package rdb
 
 import (
+	config "bluebell/Config"
+
 	"github.com/go-redis/redis"
 )
 
@@ -21,8 +23,9 @@ var (
 
 func init() {
 	rdb = redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-		DB:   0,
+		Addr:     config.Cfg.Redis.Addr,
+		Password: config.Cfg.Redis.Password,
+		DB:       config.Cfg.Redis.TokenDB,
 	})
 
 	for i, script := range scripts {

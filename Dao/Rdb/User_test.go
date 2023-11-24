@@ -9,6 +9,8 @@ import (
 
 // test SetTokens and GetToken
 func TestRedis1(t *testing.T) {
+	rdb.FlushAll()
+
 	rand.Seed(time.Now().Unix())
 
 	user_id := int64(0)
@@ -42,6 +44,8 @@ func TestRedis1(t *testing.T) {
 
 // test multi goroutine SetTokens and GetToken
 func TestRedis2(t *testing.T) {
+	rdb.FlushAll()
+
 	rand.Seed(time.Now().Unix())
 
 	user_id := int64(0)

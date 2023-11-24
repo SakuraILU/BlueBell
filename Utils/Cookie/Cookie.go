@@ -1,14 +1,11 @@
 package cookie
 
 import (
+	config "bluebell/Config"
 	model "bluebell/Model"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-)
-
-const (
-	ExpireTime = 2 * time.Hour
 )
 
 var (
@@ -24,8 +21,8 @@ type Claims struct {
 func GetToken(user *model.User) (string, error) {
 	c := Claims{
 		StandardClaims: jwt.StandardClaims{
-			Issuer:    "Bluebell",
-			ExpiresAt: time.Now().Add(ExpireTime).Unix(),
+			Issuer:    config.Cfg.Jwt.Issuer,
+			ExpiresAt: time.Now().Add(config.Cfg.Jwt.ExpireTime).Unix(),
 		},
 		UserID:   user.ID,
 		Username: user.Username,

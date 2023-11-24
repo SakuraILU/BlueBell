@@ -7,7 +7,7 @@ import (
 )
 
 func TestPost1(t *testing.T) {
-	flushrdb()
+	rdb.FlushAll()
 
 	npost := 100
 	posts := generatePost(npost)
@@ -51,7 +51,7 @@ func TestPost1(t *testing.T) {
 
 // test getpostbycommunity
 func TestPost2(t *testing.T) {
-	flushrdb()
+	rdb.FlushAll()
 
 	npost := 100
 	ncomm := 4
@@ -154,8 +154,4 @@ func getPostIDsOfCommunity(npost int, cid int) (pids []int64, err error) {
 	}
 
 	return
-}
-
-func flushrdb() {
-	rdb.FlushAll()
 }

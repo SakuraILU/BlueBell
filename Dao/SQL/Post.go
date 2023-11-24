@@ -68,5 +68,4 @@ func sortOrderByPID(posts []*model.Post, pids []int64) []*model.Post {
 	}
 
 	return posts
-
 }
